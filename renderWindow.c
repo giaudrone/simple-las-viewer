@@ -46,9 +46,6 @@ char* read_shader(char *path) {
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-/*char *vertexShader = read_shader(VERTEX_SHADER_PATH);*/
-/*char *fragmentShader = read_shader(FRAGMENT_SHADER_PATH);*/
-
 vec3 cameraPosition = {0.0f, 0.0f, 3.0f};
 vec3 cameraFront = {0.0f, 0.0f, -1.0f};
 vec3 cameraUp = {0.0f, 1.0f, 0.0f};
@@ -103,7 +100,7 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
     printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n %s", infoLog);
   }
 
-  unsigned int fragmentShader, lightfs;
+  unsigned int fragmentShader;
   fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fragmentShader, 1, &fragmentShaderSourceCopy, NULL);
   glCompileShader(fragmentShader);
@@ -126,107 +123,35 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
     glGetShaderInfoLog(shaderProgram, 512, NULL, infoLog);
     printf("ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n %s", infoLog);
   }
-  //glUseProgram(shaderProgram);
+  glUseProgram(shaderProgram);
 
   //free memory
   glDeleteShader(vertexShader);
   glDeleteShader(fragmentShader);
 
-  //intepret vertex data. 3 - 4 byte floats storing x, y, z
-  //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-  //glEnableVertexAttribArray(0);
-/*   float vertices[] = {*/
-/*    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,*/
-/*     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, */
-/*     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, */
-/*     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, */
-/*    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, */
-/*    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, */
-/**/
-/*    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,*/
-/*     0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,*/
-/*     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,*/
-/*     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,*/
-/*    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,*/
-/*    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,*/
-/**/
-/*    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,*/
-/*    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,*/
-/*    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,*/
-/*    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,*/
-/*    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,*/
-/*    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,*/
-/**/
-/*     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,*/
-/*     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,*/
-/*     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,*/
-/*     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,*/
-/*     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,*/
-/*     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,*/
-/**/
-/*    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,*/
-/*     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,*/
-/*     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,*/
-/*     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,*/
-/*    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,*/
-/*    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,*/
-/**/
-/*    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,*/
-/*     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,*/
-/*     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,*/
-/*     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,*/
-/*    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,*/
-/*    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f*/
-/*};  */
-
-/*typedef struct {*/
-/*    int32_t x;*/
-/*    int32_t y;*/
-/*    int32_t z;*/
-/*    uint16_t intensity;*/
-/**/
-/*    uint8_t returnInfo;*/
-/*    uint8_t classificationFlags;*/
-/**/
-/*    uint8_t classification;*/
-/*    uint8_t userData;*/
-/*    int16_t scanAngle;*/
-/*    uint16_t pointSourceID;*/
-/*    double gpsTime;*/
-/**/
-/*} PointDataRecord;*/
-
-  /*printf("%zu", sizeof(*records));*/
-
-  unsigned int VBO, VAO, lightVAO;
+  unsigned int VBO, VAO;
 
   glGenVertexArrays(1, &VAO);
+  glBindVertexArray(VAO);
+
   glGenBuffers(1, &VBO);
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, header.numPointRecords * sizeof(*records), records, GL_STATIC_DRAW);
-  
-  glBindVertexArray(VAO);
+  glBufferData(GL_ARRAY_BUFFER, header.numPointRecords * header.pointDataRecordLength, records, GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_INT, GL_FALSE, sizeof(*records), (void*)0);
+  glVertexAttribPointer(0, 3, GL_INT, GL_FALSE, header.pointDataRecordLength, (void*)0);
   glEnableVertexAttribArray(0);
 
-  glVertexAttribPointer(1, 1, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(*records), (void*)12);
+  glVertexAttribPointer(1, 1, GL_UNSIGNED_SHORT, GL_FALSE, header.pointDataRecordLength, (void*)12);
   glEnableVertexAttribArray(1);
-
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
-
 
   /*glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);*/
 
   int objcLoc = glGetUniformLocation(shaderProgram, "objectColor");
 
-
   glEnable(GL_DEPTH_TEST);
 
   vec3 center;
-  /*vec3 toyColor = {1.0f, 1.0f, 1.0f};*/
 
   int modelLoc = glGetUniformLocation(shaderProgram, "model");
   int viewLoc = glGetUniformLocation(shaderProgram, "view");
@@ -236,26 +161,25 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
   uint maxIntensityLoc = glGetUniformLocation(shaderProgram, "maxIntensity");
   glUniform1ui(maxIntensityLoc, 5497);
 
-  while(!glfwWindowShouldClose(window)) {
+  GLint help;
+  glGetIntegerv(GL_VERTEX_PROGRAM_POINT_SIZE, &help);
 
-    float currentFrame = glfwGetTime();
-    deltaTime = currentFrame - lastFrame;
-    lastFrame = currentFrame;
+  printf("%d\n", help);
+
+  while(!glfwWindowShouldClose(window)) {
 
     processInput(window);
 
-    /*glClearColor(sin(currentFrame), cos(currentFrame), 0.5f, 0.2f);*/
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
     mat4 proj, model, view;
 
     glUseProgram(shaderProgram);
-    /*glUniform3fv(objcLoc, 1, toyColor);*/
 
     glm_mat4_identity(proj);
-    glm_perspective(glm_rad(fov), (float)800/(float)600, 0.1f, 100.0f, proj);
+    glm_perspective(glm_rad(fov), (float)800/(float)600, 0.1f, 10000.0f, proj);
 
     glm_mat4_identity(model);
 
@@ -265,7 +189,6 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
     glm_lookat(cameraPosition, center, cameraUp, view);
 
 
-    /*glm_scale(model, (vec3){2.0f, 2.0f, 2.0f});*/
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, (float *)model);
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, (float *)view);
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, (float *)proj);
@@ -273,7 +196,7 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
     glUniform3fv(viewPosLoc, 1, cameraPosition);
 
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, header.numPointRecords);
+    glDrawArrays(GL_POINTS, 0, 3 * header.numPointRecords);
 
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, (float *)view);
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, (float *)proj);
