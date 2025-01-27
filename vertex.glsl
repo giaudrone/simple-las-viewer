@@ -12,6 +12,7 @@ uniform float centerY;
 uniform float centerZ;
 
 out vec3 fragPos;
+out float intensity;
 
 void main(){
   vec3 floatPosition = vec3(
@@ -21,5 +22,6 @@ void main(){
   );
   gl_Position = projection * view * model * vec4(floatPosition, 1.0);
   // fragPos = vec3(model * vec4(floatPosition, 1.0));
+  intensity = aIntensity;
   fragPos = aPosition;
 }

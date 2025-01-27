@@ -2,7 +2,9 @@
 
 const float PI = 3.14159265359;
 
+
 in vec3 fragPos;
+in float intensity;
 
 uniform float maxIntensity;
 uniform float minIntensity;
@@ -11,20 +13,24 @@ uniform float maxY;
 
 out vec4 FragColor;
 
-float verticalColorShiftRed(vec3 fragPos) {
-  return (cos(PI + PI * (((0.01 * fragPos.z) - minY) / (maxY - minY)))) / 2.0 + 0.5;
+float colorShiftRed(float value) {
+  return (cos(PI + PI * (((0.01 * value) - minY) / (maxY - minY)))) / 2.0 + 0.5;
 }
 
-float verticalColorShiftGreen(vec3 fragPos) {
-  return (sin(PI * (((0.01 * fragPos.z) - minY) / (maxY - minY))));
+float colorShiftGreen(float value) {
+  return (sin(PI * (((0.01 * value) - minY) / (maxY - minY))));
 }
 
-float verticalColorShiftBlue(vec3 fragPos) {
-  return (-cos(PI + PI * (((0.01 * fragPos.z) - minY) / (maxY - minY)))) / 2.0 + 0.5;
+float colorShiftBlue(float value) {
+  return (-cos(PI + PI * (((0.01 * value) - minY) / (maxY - minY)))) / 2.0 + 0.5;
+}
+
+float intensityStrength(float intensity){
+  return (intensity - minIntensity) / (maxIntensity - minIntensity);
 }
 
 void main(){
-  // FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-  FragColor = vec4(verticalColorShiftRed(fragPos), verticalColorShiftGreen(fragPos), verticalColorShiftBlue(fragPos), 1.0);
-  // vertexColor = vec3(0.5, (aIntensity - minIntensity) / (maxIntensity - minIntensity), 0.5);
+  // FragColor = vec4(colorShiftRed(fragPos.z), colorShiftGreen(fragPos.z), colorShiftBlue(fragPos.z), 1.0);
+  FragColor = vec4(colorShiftRed(intensity), colorShiftGreen(intensity), colorShiftBlue(intensity), 1.0);
+  // FragColor = vec4(mix(colorShiftRed(intensity), colorShiftRed(fragPos.z), intensity), mix(colorShiftGreen(intensity), colorShiftGreen(fragPos.z), intensity), mix(colorShiftBlue(intensity), colorShiftBlue(fragPos.z), intensity), 1.0);
 }

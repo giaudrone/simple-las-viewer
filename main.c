@@ -15,7 +15,7 @@ int main() {
 
   LASFHeader header;
 
-  FILE* fp = fopen("testoutput.las", "rb");
+  FILE* fp = fopen("./USGS_LPC_OH_Statewide_Phase1_2019_B19_BN18850590.las", "rb");
 
   if(fp) {
     fread(&header, sizeof(LASFHeader), 1, fp);
