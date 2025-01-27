@@ -48,12 +48,6 @@ modelBoundingBox createBoundingBox(LASFHeader header) {
   box.centerX = (header.maxX + header.minX) / 2.0f;
   box.centerY = (header.maxY + header.minY) / 2.0f;
   box.centerZ = (header.maxZ + header.minZ) / 2.0f;
-  /*box.maxX = header.maxX - cX;*/
-  /*box.minX = header.minX - cX;*/
-  /*box.maxY = header.maxY - cY;*/
-  /*box.minY = header.minY - cY;*/
-  /*box.maxZ = header.maxZ - cZ;*/
-  /*box.minZ = header.minZ - cZ;*/
   return box;
 };
 
@@ -76,6 +70,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 vec3 cameraPosition = {0.0f, 0.0f, 20.0f};
 vec3 cameraFront = {0.0f, 0.0f, -1.0f};
 vec3 cameraUp = {0.0f, 1.0f, 0.0f};
+vec3 center;
 float lastX = 400.0f, lastY = 300.0f;
 float pitch, yaw = -90.0f;
 float deltaTime = 0.0f;
@@ -166,7 +161,6 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
     points[i].intensity = records[i].intensity;
   }
 
-  /*qsort(points, header., sizeof(float), compare);*/
 
   float max = points[0].intensity;
 
@@ -202,41 +196,36 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
 
   glEnable(GL_DEPTH_TEST);
 
-  vec3 center;
+
 
   int modelLoc = glGetUniformLocation(shaderProgram, "model");
   int viewLoc = glGetUniformLocation(shaderProgram, "view");
   int projLoc = glGetUniformLocation(shaderProgram, "projection");
   int viewPosLoc = glGetUniformLocation(shaderProgram, "viewPos");
 
-  int maxXloc = glGetUniformLocation(shaderProgram, "maxX");
-  int maxYloc = glGetUniformLocation(shaderProgram, "maxY");
-  int maxZloc = glGetUniformLocation(shaderProgram, "maxZ");
-  int minXloc = glGetUniformLocation(shaderProgram, "minX");
-  int minYloc = glGetUniformLocation(shaderProgram, "minY");
-  int minZloc = glGetUniformLocation(shaderProgram, "minZ");
 
   int centerXloc = glGetUniformLocation(shaderProgram, "centerX");
   int centerYloc = glGetUniformLocation(shaderProgram, "centerY");
   int centerZloc = glGetUniformLocation(shaderProgram, "centerZ");
 
-  glUniform1f(maxXloc, header.maxX);
-  glUniform1f(maxYloc, header.maxY);
-  glUniform1f(maxZloc, header.maxZ);
-  glUniform1f(minXloc, header.minX);
-  glUniform1f(minYloc, header.minY);
-  glUniform1f(minZloc, header.minZ);
-
   glUniform1f(centerXloc, box.centerX);
   glUniform1f(centerYloc, box.centerY);
   glUniform1f(centerZloc, box.centerZ);
 
+
+  int maxYloc = glGetUniformLocation(shaderProgram, "maxY");
+  int minYloc = glGetUniformLocation(shaderProgram, "minY");
+
+  glUniform1f(maxYloc, header.maxY);
+  glUniform1f(minYloc, header.minY);
+
+
   uint maxIntensityLoc = glGetUniformLocation(shaderProgram, "maxIntensity");
   uint minIntensityLoc = glGetUniformLocation(shaderProgram, "minIntensity");
+
   glUniform1f(maxIntensityLoc, max);
   glUniform1f(minIntensityLoc, points[0].intensity);
 
-  /*glPointSize(5.0);*/
 
   while(!glfwWindowShouldClose(window)) {
 

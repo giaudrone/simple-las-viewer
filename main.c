@@ -25,24 +25,9 @@ int main() {
     return EXIT_FAILURE;
   }
 
-  /*header.maxX *= 100.0f;*/
-  /*header.maxY *= 100.0f;*/
-  /*header.maxZ *= 100.0f;*/
-  /*header.minX *= 100.0f;*/
-  /*header.minY *= 100.0f;*/
-  /*header.minZ *= 100.0f;*/
-
-  printf("\n\n%f, %f, %f\n\n", header.maxX - header.minX, header.maxY - header.minY, header.maxZ - header.minZ);
-
-
   size_t numRecords = header.numPointRecords;
 
   PointDataRecord *structs = malloc(numRecords * header.pointDataRecordLength);
-
-  /*for(int i = 0; i < numRecords; i++) {*/
-  /**/
-  /*}*/
-
 
 
   fseek(fp, header.offsetToPointData, SEEK_SET);
