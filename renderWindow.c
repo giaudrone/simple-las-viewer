@@ -43,6 +43,33 @@ char* read_shader(char *path) {
   return buffer;
 }
 
+modelBoundingBox createBoundingBox(LASFHeader header) {
+  modelBoundingBox box;
+  box.centerX = (header.maxX + header.minX) / 2.0f;
+  box.centerY = (header.maxY + header.minY) / 2.0f;
+  box.centerZ = (header.maxZ + header.minZ) / 2.0f;
+  /*box.maxX = header.maxX - cX;*/
+  /*box.minX = header.minX - cX;*/
+  /*box.maxY = header.maxY - cY;*/
+  /*box.minY = header.minY - cY;*/
+  /*box.maxZ = header.maxZ - cZ;*/
+  /*box.minZ = header.minZ - cZ;*/
+  return box;
+};
+
+
+int compare(const void *arg1, const void *arg2){
+  const data *d1 = (const data *)arg1;
+  const data *d2 = (const data *)arg2;
+
+  if (d1->intensity < d2->intensity)
+    return -1;
+  else if (d1->intensity > d2->intensity)
+    return 1;
+  else
+    return 0;
+}
+
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
@@ -130,28 +157,29 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
 
   data *points = malloc(sizeof(data) * header.numPointRecords);
 
-  float *range = malloc(sizeof(float) * header.numPointRecords);
-
-  float minIntensity = FLT_MAX, maxIntensity = FLT_MIN;
+  modelBoundingBox box = createBoundingBox(header);
 
   for(int i=0; i < header.numPointRecords; i++) {
-    range[i] = records[i].intensity;
     points[i].x = records[i].x;
     points[i].y = records[i].y;
     points[i].z = records[i].z;
-    if(records[i].intensity < 20000.0f){
-      points[i].intensity = records[i].intensity;
+    points[i].intensity = records[i].intensity;
+  }
+
+  /*qsort(points, header., sizeof(float), compare);*/
+
+  float max = points[0].intensity;
+
+  for(int i=0; i < header.numPointRecords; i++) {
+    if(!(points[i].intensity > 2.0 * max)){
+      max = points[i].intensity;
     } else {
-      points[i].intensity = 20000.0f;
-    }
-    if(points[i].intensity > maxIntensity) {
-      maxIntensity = points[i].intensity;
-    } else if(points[i].intensity < minIntensity) {
-      minIntensity = points[i].intensity;
+      points[i].intensity = max;
     }
   }
 
-  printf("%f, %f\n\n", maxIntensity, minIntensity);
+  points[0].intensity = 600.0f;
+  max = 10000.0f;
 
   unsigned int VBO, VAO;
 
@@ -167,12 +195,8 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(data), (void*)0);
   glEnableVertexAttribArray(0);
 
-  /*glUseProgram(shaderProgram);*/
-
   glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(data), (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
-
-  /*glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);*/
 
   int objcLoc = glGetUniformLocation(shaderProgram, "objectColor");
 
@@ -192,6 +216,10 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
   int minYloc = glGetUniformLocation(shaderProgram, "minY");
   int minZloc = glGetUniformLocation(shaderProgram, "minZ");
 
+  int centerXloc = glGetUniformLocation(shaderProgram, "centerX");
+  int centerYloc = glGetUniformLocation(shaderProgram, "centerY");
+  int centerZloc = glGetUniformLocation(shaderProgram, "centerZ");
+
   glUniform1f(maxXloc, header.maxX);
   glUniform1f(maxYloc, header.maxY);
   glUniform1f(maxZloc, header.maxZ);
@@ -199,10 +227,14 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
   glUniform1f(minYloc, header.minY);
   glUniform1f(minZloc, header.minZ);
 
+  glUniform1f(centerXloc, box.centerX);
+  glUniform1f(centerYloc, box.centerY);
+  glUniform1f(centerZloc, box.centerZ);
+
   uint maxIntensityLoc = glGetUniformLocation(shaderProgram, "maxIntensity");
   uint minIntensityLoc = glGetUniformLocation(shaderProgram, "minIntensity");
-  glUniform1f(maxIntensityLoc, maxIntensity);
-  glUniform1f(minIntensityLoc, minIntensity);
+  glUniform1f(maxIntensityLoc, max);
+  glUniform1f(minIntensityLoc, points[0].intensity);
 
   /*glPointSize(5.0);*/
 
@@ -232,6 +264,7 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
     glm_vec3_add(cameraPosition, cameraFront, center);
     glm_lookat(cameraPosition, center, cameraUp, view);
 
+    glm_scale(model, (vec3){0.01f, 0.01f, 0.01f});
 
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, (float *)model);
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, (float *)view);

@@ -12,6 +12,18 @@ typedef struct {
   float intensity;
 } data;
 
+typedef struct {
+  /*float maxX;*/
+  /*float maxY;*/
+  /*float maxZ;*/
+  /*float minX;*/
+  /*float minY;*/
+  /*float minZ;*/
+  float centerX;
+  float centerY;
+  float centerZ;
+} modelBoundingBox;
+
 #pragma pack(push, 1)
 
 typedef struct {
@@ -39,7 +51,7 @@ typedef struct {
     double yScaleFactor;              // Y Scale Factor
     double zScaleFactor;              // Z Scale Factor
     double xOffset;                   // X Offset
-    double yOffset;                   // Y Offset
+  double yOffset;                   // Y Offset
     double zOffset;                   // Z Offset
     double maxX;                      // Max X
     double minX;                      // Min X
