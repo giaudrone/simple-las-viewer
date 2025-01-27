@@ -9,7 +9,11 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
+#include <gsl/gsl_statistics_float.h>
 
+int compare(const void *arg1, const void *arg2){
+  return (*(float *)arg1 - *(float *)arg2);
+}
 
 int main() {
 
@@ -64,6 +68,30 @@ int main() {
 /*}*/
 
 
+  float *range = malloc(sizeof(float) * header.numPointRecords);
+
+  float minIntensity = FLT_MAX, maxIntensity = FLT_MIN;
+
+  for(int i=0; i < header.numPointRecords; i++) {
+    range[i] = structs[i].intensity;
+  }
+
+  qsort(range, header.numPointRecords, sizeof(float), compare);
+
+  int pos = 0;
+  float max = range[0];
+
+  for(int i=0; i < header.numPointRecords; i++) {
+    if(!(range[i] > 2.0 * max)){
+      max = range[i];
+    } else {
+      range[i] = max;
+    }
+  }
+
+  /*for(int i=0; i < header.numPointRecords; i++) {*/
+  /*  printf("%f\n", range[i]);*/
+  /*}*/
 
   renderWindow(structs, header); 
 

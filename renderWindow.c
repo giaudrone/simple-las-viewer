@@ -130,9 +130,12 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
 
   data *points = malloc(sizeof(data) * header.numPointRecords);
 
+  float *range = malloc(sizeof(float) * header.numPointRecords);
+
   float minIntensity = FLT_MAX, maxIntensity = FLT_MIN;
 
   for(int i=0; i < header.numPointRecords; i++) {
+    range[i] = records[i].intensity;
     points[i].x = records[i].x;
     points[i].y = records[i].y;
     points[i].z = records[i].z;
