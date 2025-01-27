@@ -67,7 +67,7 @@ int compare(const void *arg1, const void *arg2){
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-vec3 cameraPosition = {0.0f, 0.0f, 20.0f};
+vec3 cameraPosition = {0.0f, 0.0f, 10.0f};
 vec3 cameraFront = {0.0f, 0.0f, -1.0f};
 vec3 cameraUp = {0.0f, 1.0f, 0.0f};
 vec3 center;
@@ -216,8 +216,8 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
   int maxYloc = glGetUniformLocation(shaderProgram, "maxY");
   int minYloc = glGetUniformLocation(shaderProgram, "minY");
 
-  glUniform1f(maxYloc, header.maxY);
-  glUniform1f(minYloc, header.minY);
+  glUniform1f(maxYloc, header.maxZ);
+  glUniform1f(minYloc, header.minZ);
 
 
   uint maxIntensityLoc = glGetUniformLocation(shaderProgram, "maxIntensity");
@@ -254,6 +254,8 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
     glm_lookat(cameraPosition, center, cameraUp, view);
 
     glm_scale(model, (vec3){0.01f, 0.01f, 0.01f});
+    glm_rotate_at(model, (vec3){0.0f, 0.0f, 0.0f}, glm_rad(-90.0f), (vec3){1.0f, 0.0f, 0.0f});
+    glm_rotate_at(model, (vec3){0.0f, 0.0f, 0.0f}, glm_rad(180.0f), (vec3){0.0f, 0.0f, 1.0f});
 
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, (float *)model);
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, (float *)view);

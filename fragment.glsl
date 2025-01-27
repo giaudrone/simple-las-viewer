@@ -12,15 +12,15 @@ uniform float maxY;
 out vec4 FragColor;
 
 float verticalColorShiftRed(vec3 fragPos) {
-  return (cos(PI + PI * (((0.01 * fragPos.y) - minY) / (maxY - minY)))) / 2.0 + 0.5;
+  return (cos(PI + PI * (((0.01 * fragPos.z) - minY) / (maxY - minY)))) / 2.0 + 0.5;
 }
 
 float verticalColorShiftGreen(vec3 fragPos) {
-  return (sin(PI * (((0.01 * fragPos.y) - minY) / (maxY - minY))));
+  return (sin(PI * (((0.01 * fragPos.z) - minY) / (maxY - minY))));
 }
 
 float verticalColorShiftBlue(vec3 fragPos) {
-  return (-cos(PI + PI * (((0.01 * fragPos.y) - minY) / (maxY - minY)))) / 2.0 + 0.5;
+  return (-cos(PI + PI * (((0.01 * fragPos.z) - minY) / (maxY - minY)))) / 2.0 + 0.5;
 }
 
 void main(){
