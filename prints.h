@@ -5,6 +5,13 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+typedef struct {
+  float x;
+  float y;
+  float z;
+  float intensity;
+} data;
+
 #pragma pack(push, 1)
 
 typedef struct {
