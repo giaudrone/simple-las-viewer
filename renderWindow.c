@@ -53,12 +53,12 @@ modelBoundingBox createBoundingBox(LASFHeader header) {
 
 
 int compare(const void *arg1, const void *arg2){
-  const data *d1 = (const data *)arg1;
-  const data *d2 = (const data *)arg2;
+  const PointDataRecord *d1 = (const PointDataRecord *)arg1;
+  const PointDataRecord *d2 = (const PointDataRecord *)arg2;
 
-  if (d1->intensity < d2->intensity)
+  if (d1->z < d2->z)
     return -1;
-  else if (d1->intensity > d2->intensity)
+  else if (d1->z > d2->z)
     return 1;
   else
     return 0;
@@ -84,7 +84,7 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-  GLFWwindow* window = glfwCreateWindow(800, 800, "LearnOpenGL", NULL, NULL);
+  GLFWwindow* window = glfwCreateWindow(1200, 720, "LearnOpenGL", NULL, NULL);
   if (window == NULL) {
     printf("Failed to create window");
     glfwTerminate();
@@ -152,6 +152,11 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
 
   data *points = malloc(sizeof(data) * header.numPointRecords);
 
+  qsort(records, header.numPointRecords, sizeof(PointDataRecord), compare);
+
+
+  float maxIntensity = FLT_MIN, minIntensity = FLT_MAX;
+
   modelBoundingBox box = createBoundingBox(header);
 
   for(int i=0; i < header.numPointRecords; i++) {
@@ -161,7 +166,22 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
     points[i].intensity = records[i].intensity;
   }
 
-  float maxIntensity = FLT_MIN, minIntensity = FLT_MAX;
+
+  for(int i=1; i < header.numPointRecords * 0.01f; i++) {
+    if(points[i].z - points[i-1].z > 10) {
+      header.minZ = points[i].z * header.zScaleFactor;
+    } else {
+      break;
+    }
+  }
+
+  for(int i = header.numPointRecords * 0.99f; i < header.numPointRecords; i++) {
+    if(points[i].z - points[i-1].z > 10) {
+      header.maxZ = points[i-1].z * header.zScaleFactor;
+      break;
+    }
+  }
+
 
   for(int i=0; i < header.numPointRecords; i++) {
     if(points[i].intensity > maxIntensity) {
@@ -170,6 +190,7 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
       minIntensity = points[i].intensity;
     }
   }
+
 
   unsigned int VBO, VAO;
 
@@ -222,6 +243,7 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
   glUniform1f(maxIntensityLoc, maxIntensity);
   glUniform1f(minIntensityLoc, minIntensity);
 
+  /*glPointSize(5.0f);*/
 
   while(!glfwWindowShouldClose(window)) {
 
@@ -233,7 +255,7 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
 
     processInput(window);
 
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -242,11 +264,10 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
     glUseProgram(shaderProgram);
 
     glm_mat4_identity(proj);
-    glm_perspective(glm_rad(fov), (float)800/(float)600, 0.1f, 100.0f, proj);
-
     glm_mat4_identity(model);
-
     glm_mat4_identity(view);
+
+    glm_perspective(glm_rad(fov), (float)800/(float)600, 0.1f, 100.0f, proj);
 
     glm_vec3_add(cameraPosition, cameraFront, center);
     glm_lookat(cameraPosition, center, cameraUp, view);

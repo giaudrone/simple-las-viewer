@@ -11,15 +11,16 @@
 #include <cglm/cglm.h>
 #include <gsl/gsl_statistics_float.h>
 
+
 int main() {
 
   LASFHeader header;
 
-  FILE* fp = fopen("./USGS_LPC_MT_RavalliGraniteCusterPowder_2019_B19_473046.las", "rb");
+  FILE* fp = fopen("./USGS_LPC_OH_Statewide_Phase1_2019_B19_BN17160416.las", "rb");
 
   if(fp) {
     fread(&header, sizeof(LASFHeader), 1, fp);
-    printDebug(header);
+    /*printDebug(header);*/
   } else {
     printf("Failed to read header");
     return EXIT_FAILURE;
@@ -34,14 +35,6 @@ int main() {
 
   fread(structs, sizeof(PointDataRecord), numRecords, fp);
 
-
-  /*for(int i=0; i < numRecords; ++i) {*/
-  /*  if(structs[i].classification == 7){*/
-  /*    printPointDataRecord(&structs[i]);*/
-  /*  }*/
-  /*}*/
-
-  /*printPointDataRecord(&structs[100]);*/
 
   renderWindow(structs, header); 
 
