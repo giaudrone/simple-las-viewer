@@ -15,7 +15,7 @@ int main() {
 
   LASFHeader header;
 
-  FILE* fp = fopen("./USGS_LPC_OH_Statewide_Phase1_2019_B19_BN18850590.las", "rb");
+  FILE* fp = fopen("./USGS_LPC_MT_RavalliGraniteCusterPowder_2019_B19_473046.las", "rb");
 
   if(fp) {
     fread(&header, sizeof(LASFHeader), 1, fp);
@@ -34,7 +34,14 @@ int main() {
 
   fread(structs, sizeof(PointDataRecord), numRecords, fp);
 
-  printPointDataRecord(&structs[100]);
+
+  /*for(int i=0; i < numRecords; ++i) {*/
+  /*  if(structs[i].classification == 7){*/
+  /*    printPointDataRecord(&structs[i]);*/
+  /*  }*/
+  /*}*/
+
+  /*printPointDataRecord(&structs[100]);*/
 
   renderWindow(structs, header); 
 

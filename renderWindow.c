@@ -161,19 +161,15 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
     points[i].intensity = records[i].intensity;
   }
 
-
-  float max = points[0].intensity;
+  float maxIntensity = FLT_MIN, minIntensity = FLT_MAX;
 
   for(int i=0; i < header.numPointRecords; i++) {
-    if(!(points[i].intensity > 2.0 * max)){
-      max = points[i].intensity;
-    } else {
-      points[i].intensity = max;
+    if(points[i].intensity > maxIntensity) {
+      maxIntensity = points[i].intensity;
+    } else if(points[i].intensity < minIntensity){
+      minIntensity = points[i].intensity;
     }
   }
-
-  points[0].intensity = 600.0f;
-  max = 10000.0f;
 
   unsigned int VBO, VAO;
 
@@ -223,8 +219,8 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
   uint maxIntensityLoc = glGetUniformLocation(shaderProgram, "maxIntensity");
   uint minIntensityLoc = glGetUniformLocation(shaderProgram, "minIntensity");
 
-  glUniform1f(maxIntensityLoc, max);
-  glUniform1f(minIntensityLoc, points[0].intensity);
+  glUniform1f(maxIntensityLoc, maxIntensity);
+  glUniform1f(minIntensityLoc, minIntensity);
 
 
   while(!glfwWindowShouldClose(window)) {
@@ -232,6 +228,8 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
+
+    /*printf("FPS: %f", 1 / deltaTime);*/
 
     processInput(window);
 
@@ -244,7 +242,7 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
     glUseProgram(shaderProgram);
 
     glm_mat4_identity(proj);
-    glm_perspective(glm_rad(fov), (float)800/(float)600, 0.1f, 1000.0f, proj);
+    glm_perspective(glm_rad(fov), (float)800/(float)600, 0.1f, 100.0f, proj);
 
     glm_mat4_identity(model);
 
@@ -253,7 +251,7 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
     glm_vec3_add(cameraPosition, cameraFront, center);
     glm_lookat(cameraPosition, center, cameraUp, view);
 
-    glm_scale(model, (vec3){0.01f, 0.01f, 0.01f});
+    glm_scale(model, (vec3){0.05f, 0.05f, 0.05f});
     glm_rotate_at(model, (vec3){0.0f, 0.0f, 0.0f}, glm_rad(-90.0f), (vec3){1.0f, 0.0f, 0.0f});
     glm_rotate_at(model, (vec3){0.0f, 0.0f, 0.0f}, glm_rad(180.0f), (vec3){0.0f, 0.0f, 1.0f});
 
@@ -283,6 +281,7 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
   glDeleteVertexArrays(1, &VAO);
   glDeleteBuffers(1, &VBO);
   glDeleteProgram(shaderProgram);
+  free(points);
 
   glfwTerminate();
 }
@@ -296,7 +295,7 @@ void processInput(GLFWwindow* window) {
   float cameraSpeed = 3.0f * deltaTime;
 
   if(glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
-    cameraSpeed *= 2.0f;
+    cameraSpeed *= 10.0f;
   if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     glm_vec3_muladds(cameraFront, cameraSpeed, cameraPosition);
   if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)

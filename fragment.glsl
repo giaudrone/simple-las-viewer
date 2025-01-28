@@ -31,6 +31,6 @@ float intensityStrength(float intensity){
 
 void main(){
   // FragColor = vec4(colorShiftRed(fragPos.z), colorShiftGreen(fragPos.z), colorShiftBlue(fragPos.z), 1.0);
-  FragColor = vec4(colorShiftRed(intensity), colorShiftGreen(intensity), colorShiftBlue(intensity), 1.0);
-  // FragColor = vec4(mix(colorShiftRed(intensity), colorShiftRed(fragPos.z), intensity), mix(colorShiftGreen(intensity), colorShiftGreen(fragPos.z), intensity), mix(colorShiftBlue(intensity), colorShiftBlue(fragPos.z), intensity), 1.0);
+  // FragColor = vec4(colorShiftRed(intensity), colorShiftGreen(intensity), colorShiftBlue(intensity), 1.0);
+  FragColor = vec4(mix(colorShiftRed(intensity), colorShiftRed(fragPos.z), fragPos.z), mix(colorShiftGreen(intensity), colorShiftGreen(fragPos.z), fragPos.z), mix(colorShiftBlue(intensity), colorShiftBlue(fragPos.z), fragPos.z), 1.0);
 }
