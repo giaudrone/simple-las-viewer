@@ -150,24 +150,24 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
   glDeleteShader(vertexShader);
   glDeleteShader(fragmentShader);
 
-  data *points = malloc(sizeof(data) * header.numPointRecords);
+  /*data *points = malloc(sizeof(data) * header.numPointRecords);*/
 
   modelBoundingBox box = createBoundingBox(header);
 
-  for(int i=0; i < header.numPointRecords; i++) {
-    points[i].x = records[i].x;
-    points[i].y = records[i].y;
-    points[i].z = records[i].z;
-    points[i].intensity = records[i].intensity;
-  }
+  /*for(int i=0; i < header.numPointRecords; i++) {*/
+  /*  points[i].x = records[i].x;*/
+  /*  points[i].y = records[i].y;*/
+  /*  points[i].z = records[i].z;*/
+  /*  points[i].intensity = records[i].intensity;*/
+  /*}*/
 
   float maxIntensity = FLT_MIN, minIntensity = FLT_MAX;
 
   for(int i=0; i < header.numPointRecords; i++) {
-    if(points[i].intensity > maxIntensity) {
-      maxIntensity = points[i].intensity;
-    } else if(points[i].intensity < minIntensity){
-      minIntensity = points[i].intensity;
+    if(records[i].intensity > maxIntensity) {
+      maxIntensity = records[i].intensity;
+    } else if(records[i].intensity < minIntensity){
+      minIntensity = records[i].intensity;
     }
   }
 
@@ -178,14 +178,31 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
 
   glGenBuffers(1, &VBO);
 
+/*typedef struct {*/
+/*    int32_t x;*/
+/*    int32_t y;*/
+/*    int32_t z;*/
+/*    uint16_t intensity;*/
+/**/
+/*    uint8_t returnInfo;*/
+/*    uint8_t classificationFlags;*/
+/**/
+/*    uint8_t classification;*/
+/*    uint8_t userData;*/
+/*    int16_t scanAngle;*/
+/*    uint16_t pointSourceID;*/
+/*    double gpsTime;*/
+/**/
+/*} PointDataRecord;*/
+
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(data) * header.numPointRecords, points, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(PointDataRecord) * header.numPointRecords, records, GL_STATIC_DRAW);
   
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(data), (void*)0);
+  glVertexAttribPointer(0, 3, GL_INT, GL_FALSE, sizeof(PointDataRecord), (void*)0);
   glEnableVertexAttribArray(0);
 
-  glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(data), (void*)(3 * sizeof(float)));
+  glVertexAttribPointer(1, 1, GL_SHORT, GL_FALSE, sizeof(PointDataRecord), (void*)(3 * sizeof(int)));
   glEnableVertexAttribArray(1);
 
   int objcLoc = glGetUniformLocation(shaderProgram, "objectColor");
@@ -281,7 +298,6 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
   glDeleteVertexArrays(1, &VAO);
   glDeleteBuffers(1, &VBO);
   glDeleteProgram(shaderProgram);
-  free(points);
 
   glfwTerminate();
 }

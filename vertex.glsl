@@ -1,7 +1,7 @@
 #version 330 core
 
-layout (location = 0) in vec3 aPosition;
-layout (location = 1) in float aIntensity;
+layout (location = 0) in ivec3 aPosition;
+layout (location = 1) in int aIntensity;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -22,6 +22,6 @@ void main(){
   );
   gl_Position = projection * view * model * vec4(floatPosition, 1.0);
   // fragPos = vec3(model * vec4(floatPosition, 1.0));
-  intensity = aIntensity;
-  fragPos = aPosition;
+  intensity = float(aIntensity);
+  fragPos = vec3(aPosition);
 }
