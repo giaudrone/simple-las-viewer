@@ -7,8 +7,8 @@
 #include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
 
-#define VERTEX_SHADER_PATH "vertex.glsl"
-#define FRAGMENT_SHADER_PATH "fragment.glsl"
+#define VERTEX_SHADER_PATH "src/vertex.glsl"
+#define FRAGMENT_SHADER_PATH "src/fragment.glsl"
 
 #define PI 3.142
 

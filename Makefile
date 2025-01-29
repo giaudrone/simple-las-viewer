@@ -1,31 +1,18 @@
-# Compiler and flags
 CC = gcc
 CFLAGS = -Wall -g
 
-# Detect OS
 ifeq ($(OS),Windows_NT)
-    PLATFORM = WINDOWS
     LDFLAGS = -lopengl32 -lglfw3 -lgdi32 -static-libgcc -static-libstdc++
 else
-    PLATFORM = LINUX
     LDFLAGS = -lglfw -lGL -lm
 endif
 
-# Source files
-SRC = main.c prints.c renderWindow.c includes/glad.c
-OBJ = $(SRC:.c=.o)
+SRC = src/main.c src/prints.c src/renderWindow.c includes/glad.c
 EXE = simplelasviewer
 
-# Build rules
-all: $(EXE)
+all:
+	$(CC) -o $(EXE) $(SRC) $(CFLAGS) $(LDFLAGS)
 
-$(EXE): $(OBJ)
-	$(CC) $(OBJ) -o $(EXE) $(LDFLAGS)
-
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-# Cleanup
 clean:
-	rm -f $(OBJ) $(EXE)
+	rm -f $(EXE)
 
