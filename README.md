@@ -8,7 +8,7 @@ Point color modes (1) Height scaled RGB, (2) Intensity of point, (3) Mix between
 Model scaling (+e, -q)  
 Render Distance (+c, -z)  
 
-## Prerequisites
+## Dependencies
 ```
 Available on the AUR:
 
