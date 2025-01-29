@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 
   int noiseFlag = 0;
 
-  if(strcmp(argv[2], "--reduce-noise")) {
+  if(argc == 3 && !strcmp(argv[2], "--reduce-noise")) {
     noiseFlag = 1;
   }
 
