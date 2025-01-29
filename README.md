@@ -10,9 +10,9 @@ Render Distance (+c, -z)
 
 ## Dependencies
 Available on the AUR:
-
-glfw
-cglm
+```
+sudo pacman -S glfw cglm
+```
 
 ## Installation
 Clone this repository
