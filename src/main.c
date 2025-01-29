@@ -13,8 +13,8 @@
 
 int main(int argc, char *argv[]) {
 
-  if(argc == 1 || argc > 3){
-    printf("usage: simplelasviewer [path] [--reduce-noise]\n\npath\t\t\tPath to las file\n--reduce-noise\t\tReduce Y-Scale miscolorings due to noise\n");
+  if(argc == 1 || argc > 3 || !strstr(argv[1], ".las")){
+    printf("usage: simplelasviewer [path] [--reduce-noise]\n\npath\t\t\tPath to .las file\n--reduce-noise\t\tAttempt to reduce Y-Scale miscolorings due to noise. Load time may increase\n");
     return EXIT_FAILURE;
   }
 
@@ -33,6 +33,11 @@ int main(int argc, char *argv[]) {
     fread(&header, sizeof(LASFHeader), 1, fp);
   } else {
     printf("Failed to read header");
+    return EXIT_FAILURE;
+  }
+
+  if(header.pointDataRecordFormat != 6){
+    printf("Point data format %d is not supported yet\n", header.pointDataRecordFormat);
     return EXIT_FAILURE;
   }
 
