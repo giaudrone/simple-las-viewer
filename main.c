@@ -3,24 +3,34 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <limits.h>
+#include <string.h>
 
 #include "prints.h"
 #include "renderWindow.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
-#include <gsl/gsl_statistics_float.h>
 
+int main(int argc, char *argv[]) {
 
-int main() {
+  if(argc == 1 || argc > 3){
+    printf("usage: simplelasviewer [path] [--reduce-noise]\n\npath\t\t\tPath to las file\n--reduce-noise\t\tReduce Y-Scale miscolorings due to noise\n");
+    return EXIT_FAILURE;
+  }
+
+  int noiseFlag = 0;
+
+  if(strcmp(argv[2], "--reduce-noise")) {
+    noiseFlag = 1;
+  }
+
 
   LASFHeader header;
 
-  FILE* fp = fopen("./USGS_LPC_OH_Statewide_Phase1_2019_B19_BN17160416.las", "rb");
+  FILE* fp = fopen(argv[1],"rb");
 
   if(fp) {
     fread(&header, sizeof(LASFHeader), 1, fp);
-    /*printDebug(header);*/
   } else {
     printf("Failed to read header");
     return EXIT_FAILURE;
@@ -36,9 +46,7 @@ int main() {
   fread(structs, sizeof(PointDataRecord), numRecords, fp);
 
 
-  renderWindow(structs, header); 
-
-  /*printPointDataRecord(&structs[101]);*/
+  renderWindow(structs, header, noiseFlag); 
 
   free(structs);
 

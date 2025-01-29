@@ -3,6 +3,6 @@
 
 #include "prints.h"
 
-void renderWindow(PointDataRecord *records, LASFHeader header);
+void renderWindow(PointDataRecord *records, LASFHeader header, int noiseFlag);
 
 #endif // ! RENDERWINDOW_H_

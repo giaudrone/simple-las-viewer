@@ -11,17 +11,20 @@ uniform float centerX;
 uniform float centerY;
 uniform float centerZ;
 
+uniform float xScaleFactor;
+uniform float yScaleFactor;
+uniform float zScaleFactor;
+
 out vec3 fragPos;
 out float intensity;
 
 void main(){
   vec3 floatPosition = vec3(
-    0.01 * aPosition.x - centerX,
-    0.01 * aPosition.y - centerY, 
-    0.01 * aPosition.z - centerZ
+    xScaleFactor * aPosition.x - centerX,
+    yScaleFactor * aPosition.y - centerY, 
+    zScaleFactor * aPosition.z - centerZ
   );
   gl_Position = projection * view * model * vec4(floatPosition, 1.0);
-  // fragPos = vec3(model * vec4(floatPosition, 1.0));
   intensity = aIntensity;
   fragPos = aPosition;
 }

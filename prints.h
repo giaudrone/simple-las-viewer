@@ -13,12 +13,6 @@ typedef struct {
 } data;
 
 typedef struct {
-  /*float maxX;*/
-  /*float maxY;*/
-  /*float maxZ;*/
-  /*float minX;*/
-  /*float minY;*/
-  /*float minZ;*/
   float centerX;
   float centerY;
   float centerZ;

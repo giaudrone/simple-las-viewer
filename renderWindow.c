@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <math.h>
 #include "prints.h"
@@ -77,8 +76,12 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 int firstMouse = 1;
 float fov = 45.0f;
+int colorMode = 1;
+mat4 proj, model, view;
+vec3 scaleFactor = {0.05f, 0.05f, 0.05f};
+float renderDistance = 100.0f;
 
-void renderWindow(PointDataRecord *records, LASFHeader header) {
+void renderWindow(PointDataRecord *records, LASFHeader header, int noiseFlag) {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -109,7 +112,7 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
   const char *vertexShaderSourceCopy = vertexShaderSource;
   const char *fragmentShaderSourceCopy = fragmentShaderSource;
 
-  unsigned int vertexShader, lightvs;
+  unsigned int vertexShader;
   vertexShader = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vertexShader, 1, &vertexShaderSourceCopy, NULL);
   glCompileShader(vertexShader);
@@ -152,14 +155,14 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
 
   data *points = malloc(sizeof(data) * header.numPointRecords);
 
-  qsort(records, header.numPointRecords, sizeof(PointDataRecord), compare);
-
+  if(noiseFlag)
+    qsort(records, header.numPointRecords, sizeof(PointDataRecord), compare);
 
   float maxIntensity = FLT_MIN, minIntensity = FLT_MAX;
 
   modelBoundingBox box = createBoundingBox(header);
 
-  for(int i=0; i < header.numPointRecords; i++) {
+  for(size_t i=0; i < header.numPointRecords; i++) {
     points[i].x = records[i].x;
     points[i].y = records[i].y;
     points[i].z = records[i].z;
@@ -167,23 +170,26 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
   }
 
 
-  for(int i=1; i < header.numPointRecords * 0.01f; i++) {
-    if(points[i].z - points[i-1].z > 10) {
-      header.minZ = points[i].z * header.zScaleFactor;
-    } else {
-      break;
+  if(noiseFlag) {
+
+    for(size_t i = 1; i < header.numPointRecords * 0.01f; i++) {
+      if(points[i].z - points[i-1].z > 10) {
+        header.minZ = points[i].z * header.zScaleFactor;
+      } else {
+        break;
+      }
+    }
+
+    for(size_t i = header.numPointRecords * 0.99f; i < header.numPointRecords; i++) {
+      if(points[i].z - points[i-1].z > 10) {
+        header.maxZ = points[i-1].z * header.zScaleFactor;
+        break;
+      }
     }
   }
 
-  for(int i = header.numPointRecords * 0.99f; i < header.numPointRecords; i++) {
-    if(points[i].z - points[i-1].z > 10) {
-      header.maxZ = points[i-1].z * header.zScaleFactor;
-      break;
-    }
-  }
 
-
-  for(int i=0; i < header.numPointRecords; i++) {
+  for(size_t i=0; i < header.numPointRecords; i++) {
     if(points[i].intensity > maxIntensity) {
       maxIntensity = points[i].intensity;
     } else if(points[i].intensity < minIntensity){
@@ -209,8 +215,6 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
   glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(data), (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
 
-  int objcLoc = glGetUniformLocation(shaderProgram, "objectColor");
-
   glEnable(GL_DEPTH_TEST);
 
 
@@ -229,6 +233,13 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
   glUniform1f(centerYloc, box.centerY);
   glUniform1f(centerZloc, box.centerZ);
 
+  int xSFloc = glGetUniformLocation(shaderProgram, "xScaleFactor");
+  int ySFloc = glGetUniformLocation(shaderProgram, "yScaleFactor");
+  int zSFloc = glGetUniformLocation(shaderProgram, "zScaleFactor");
+
+  glUniform1f(xSFloc, header.xScaleFactor);
+  glUniform1f(ySFloc, header.yScaleFactor);
+  glUniform1f(zSFloc, header.zScaleFactor);
 
   int maxYloc = glGetUniformLocation(shaderProgram, "maxY");
   int minYloc = glGetUniformLocation(shaderProgram, "minY");
@@ -237,11 +248,13 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
   glUniform1f(minYloc, header.minZ);
 
 
-  uint maxIntensityLoc = glGetUniformLocation(shaderProgram, "maxIntensity");
-  uint minIntensityLoc = glGetUniformLocation(shaderProgram, "minIntensity");
+  int maxIntensityLoc = glGetUniformLocation(shaderProgram, "maxIntensity");
+  int minIntensityLoc = glGetUniformLocation(shaderProgram, "minIntensity");
 
   glUniform1f(maxIntensityLoc, maxIntensity);
   glUniform1f(minIntensityLoc, minIntensity);
+
+  int colorModeLoc = glGetUniformLocation(shaderProgram, "colorMode");
 
   /*glPointSize(5.0f);*/
 
@@ -253,26 +266,27 @@ void renderWindow(PointDataRecord *records, LASFHeader header) {
 
     /*printf("FPS: %f", 1 / deltaTime);*/
 
+    glm_mat4_identity(proj);
+    glm_mat4_identity(model);
+    glm_mat4_identity(view);
+
     processInput(window);
+    glUniform1i(colorModeLoc, colorMode);
 
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-    mat4 proj, model, view;
 
     glUseProgram(shaderProgram);
 
-    glm_mat4_identity(proj);
-    glm_mat4_identity(model);
-    glm_mat4_identity(view);
 
-    glm_perspective(glm_rad(fov), (float)800/(float)600, 0.1f, 100.0f, proj);
+    glm_perspective(glm_rad(fov), (float)800/(float)600, 0.1f, renderDistance, proj);
 
     glm_vec3_add(cameraPosition, cameraFront, center);
     glm_lookat(cameraPosition, center, cameraUp, view);
 
-    glm_scale(model, (vec3){0.05f, 0.05f, 0.05f});
+    glm_scale(model, scaleFactor);
     glm_rotate_at(model, (vec3){0.0f, 0.0f, 0.0f}, glm_rad(-90.0f), (vec3){1.0f, 0.0f, 0.0f});
     glm_rotate_at(model, (vec3){0.0f, 0.0f, 0.0f}, glm_rad(180.0f), (vec3){0.0f, 0.0f, 1.0f});
 
@@ -333,6 +347,24 @@ void processInput(GLFWwindow* window) {
     glm_vec3_muladds(cameraUp, cameraSpeed, cameraPosition);
   if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     glm_vec3_mulsubs(cameraUp, cameraSpeed, cameraPosition);
+
+  if(glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+    colorMode = 1;
+  if(glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+    colorMode = 2;
+  if(glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+    colorMode = 3;
+
+  if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    glm_vec3_mul(scaleFactor, (vec3){0.99f, 0.99f, 0.99f}, scaleFactor);
+  if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+    glm_vec3_mul(scaleFactor, (vec3){1.01f, 1.01f, 1.01f}, scaleFactor);
+
+  if(glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+    if(!(renderDistance < 2.0f))
+      renderDistance -= 1.0f;
+  if(glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+    renderDistance += 1.0f;
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
