@@ -25,4 +25,5 @@ make
 ```
 
 ## Notes
-Untested on Windows. You may need to manually link libraries
+Untested on Windows. You may need to manually link libraries  
+Only Point Data Record Format 6 supported
