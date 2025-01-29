@@ -9,13 +9,10 @@ Model scaling (+e, -q)
 Render Distance (+c, -z)  
 
 ## Dependencies
-```
 Available on the AUR:
 
-glad
 glfw
 cglm
-```
 
 ## Installation
 Clone this repository

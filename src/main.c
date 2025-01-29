@@ -7,7 +7,7 @@
 
 #include "prints.h"
 #include "renderWindow.h"
-#include <glad/glad.h>
+#include "../includes/glad.h"
 #include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
 

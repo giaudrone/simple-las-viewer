@@ -3,7 +3,7 @@
 #include <math.h>
 #include "prints.h"
 
-#include <glad/glad.h>
+#include "../includes/glad.h"
 #include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
 
