@@ -21,7 +21,7 @@ cglm
 Clone this repository
 ```
 make
-./simplelasviewer
+./simplelasviewer [path] [--reduce-noise]
 ```
 
 ## Notes
