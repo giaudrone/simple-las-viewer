@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "prints.h"
+#include "recordFormats.h"
 
 #include "../includes/glad.h"
 #include <GLFW/glfw3.h>
@@ -42,18 +42,22 @@ char* read_shader(char *path) {
   return buffer;
 }
 
-modelBoundingBox createBoundingBox(LASFHeader header) {
+modelBoundingBox createBoundingBox(LASFHeader *header) {
   modelBoundingBox box;
-  box.centerX = (header.maxX + header.minX) / 2.0f;
-  box.centerY = (header.maxY + header.minY) / 2.0f;
-  box.centerZ = (header.maxZ + header.minZ) / 2.0f;
+  box.centerX = (header->maxX + header->minX) / 2.0f;
+  box.centerY = (header->maxY + header->minY) / 2.0f;
+  box.centerZ = (header->maxZ + header->minZ) / 2.0f;
   return box;
 };
 
+void calculateColors(data *points, LASFHeader *header, uint16_t minIntensity, uint16_t maxIntensity);
+float colorShiftRed(float value, float minY, float maxY) ;
+float colorShiftGreen(float value, float minY, float maxY);
+float colorShiftBlue(float value, float minY, float maxY);
 
 int compare(const void *arg1, const void *arg2){
-  const PointDataRecord *d1 = (const PointDataRecord *)arg1;
-  const PointDataRecord *d2 = (const PointDataRecord *)arg2;
+  const PointDataRecord6 *d1 = (const PointDataRecord6 *)arg1;
+  const PointDataRecord6 *d2 = (const PointDataRecord6 *)arg2;
 
   if (d1->z < d2->z)
     return -1;
@@ -81,7 +85,7 @@ mat4 proj, model, view;
 vec3 scaleFactor = {0.05f, 0.05f, 0.05f};
 float renderDistance = 100.0f;
 
-void renderWindow(PointDataRecord *records, LASFHeader header, int noiseFlag) {
+void renderWindow(PointDataRecord6 *records, LASFHeader *header, int noiseFlag) {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -153,16 +157,16 @@ void renderWindow(PointDataRecord *records, LASFHeader header, int noiseFlag) {
   glDeleteShader(vertexShader);
   glDeleteShader(fragmentShader);
 
-  data *points = malloc(sizeof(data) * header.numPointRecords);
+  data *points = malloc(sizeof(data) * header->numPointRecords);
 
   if(noiseFlag)
-    qsort(records, header.numPointRecords, sizeof(PointDataRecord), compare);
+    qsort(records, header->numPointRecords, sizeof(PointDataRecord6), compare);
 
-  float maxIntensity = FLT_MIN, minIntensity = FLT_MAX;
+  uint16_t maxIntensity = 0, minIntensity = 2^(16);
 
   modelBoundingBox box = createBoundingBox(header);
 
-  for(size_t i=0; i < header.numPointRecords; i++) {
+  for(size_t i=0; i < header->numPointRecords; i++) {
     points[i].x = records[i].x;
     points[i].y = records[i].y;
     points[i].z = records[i].z;
@@ -172,24 +176,24 @@ void renderWindow(PointDataRecord *records, LASFHeader header, int noiseFlag) {
 
   if(noiseFlag) {
 
-    for(size_t i = 1; i < header.numPointRecords * 0.01f; i++) {
+    for(size_t i = 1; i < header->numPointRecords * 0.01f; i++) {
       if(points[i].z - points[i-1].z > 10) {
-        header.minZ = points[i].z * header.zScaleFactor;
+        header->minZ = points[i].z * header->zScaleFactor;
       } else {
         break;
       }
     }
 
-    for(size_t i = header.numPointRecords * 0.99f; i < header.numPointRecords; i++) {
+    for(size_t i = header->numPointRecords * 0.99f; i < header->numPointRecords; i++) {
       if(points[i].z - points[i-1].z > 10) {
-        header.maxZ = points[i-1].z * header.zScaleFactor;
+        header->maxZ = points[i-1].z * header->zScaleFactor;
         break;
       }
     }
   }
 
 
-  for(size_t i=0; i < header.numPointRecords; i++) {
+  for(size_t i=0; i < header->numPointRecords; i++) {
     if(points[i].intensity > maxIntensity) {
       maxIntensity = points[i].intensity;
     } else if(points[i].intensity < minIntensity){
@@ -197,6 +201,7 @@ void renderWindow(PointDataRecord *records, LASFHeader header, int noiseFlag) {
     }
   }
 
+  calculateColors(points, header, minIntensity, maxIntensity);
 
   unsigned int VBO, VAO;
 
@@ -206,7 +211,7 @@ void renderWindow(PointDataRecord *records, LASFHeader header, int noiseFlag) {
   glGenBuffers(1, &VBO);
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(data) * header.numPointRecords, points, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(data) * header->numPointRecords, points, GL_STATIC_DRAW);
   
 
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(data), (void*)0);
@@ -214,6 +219,12 @@ void renderWindow(PointDataRecord *records, LASFHeader header, int noiseFlag) {
 
   glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(data), (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
+
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(data), (void*)(4 * sizeof(float)));
+  glEnableVertexAttribArray(2);
+
+  glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(data), (void*)(9 * sizeof(float)));
+  glEnableVertexAttribArray(3);
 
   glEnable(GL_DEPTH_TEST);
 
@@ -237,22 +248,21 @@ void renderWindow(PointDataRecord *records, LASFHeader header, int noiseFlag) {
   int ySFloc = glGetUniformLocation(shaderProgram, "yScaleFactor");
   int zSFloc = glGetUniformLocation(shaderProgram, "zScaleFactor");
 
-  glUniform1f(xSFloc, header.xScaleFactor);
-  glUniform1f(ySFloc, header.yScaleFactor);
-  glUniform1f(zSFloc, header.zScaleFactor);
+  glUniform1f(xSFloc, header->xScaleFactor);
+  glUniform1f(ySFloc, header->yScaleFactor);
+  glUniform1f(zSFloc, header->zScaleFactor);
 
-  int maxYloc = glGetUniformLocation(shaderProgram, "maxY");
-  int minYloc = glGetUniformLocation(shaderProgram, "minY");
+  /*int maxYloc = glGetUniformLocation(shaderProgram, "maxY");*/
+  /*int minYloc = glGetUniformLocation(shaderProgram, "minY");*/
+  /**/
+  /*glUniform1f(maxYloc, header->maxZ);*/
+  /*glUniform1f(minYloc, header->minZ);*/
 
-  glUniform1f(maxYloc, header.maxZ);
-  glUniform1f(minYloc, header.minZ);
-
-
-  int maxIntensityLoc = glGetUniformLocation(shaderProgram, "maxIntensity");
-  int minIntensityLoc = glGetUniformLocation(shaderProgram, "minIntensity");
-
-  glUniform1f(maxIntensityLoc, maxIntensity);
-  glUniform1f(minIntensityLoc, minIntensity);
+  /*int maxIntensityLoc = glGetUniformLocation(shaderProgram, "maxIntensity");*/
+  /*int minIntensityLoc = glGetUniformLocation(shaderProgram, "minIntensity");*/
+  /**/
+  /*glUniform1f(maxIntensityLoc, maxIntensity);*/
+  /*glUniform1f(minIntensityLoc, minIntensity);*/
 
   int colorModeLoc = glGetUniformLocation(shaderProgram, "colorMode");
 
@@ -297,7 +307,7 @@ void renderWindow(PointDataRecord *records, LASFHeader header, int noiseFlag) {
     glUniform3fv(viewPosLoc, 1, cameraPosition);
 
     glBindVertexArray(VAO);
-    glDrawArrays(GL_POINTS, 0, header.numPointRecords);
+    glDrawArrays(GL_POINTS, 0, header->numPointRecords);
 
     GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
@@ -401,4 +411,29 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
     fov = 1.0f;
   if(fov > 120.0f)
     fov = 120.0f;
+}
+
+void calculateColors(data *points, LASFHeader *header, uint16_t minIntensity, uint16_t maxIntensity) {
+  for(uint64_t i = 0; i < header->numPointRecords; ++i) {
+    float z = points[i].z;
+    float in = points[i].intensity;
+    points[i].r = colorShiftRed(z, (float)header->minY,  (float)header->maxY);
+    points[i].g = colorShiftGreen(z, (float)header->minY,  (float)header->maxY);
+    points[i].b = colorShiftBlue(z, (float)header->minY,  (float)header->maxY);
+    points[i].ir = colorShiftRed(in, (float)header->minY,  (float)header->maxY);
+    points[i].ig = colorShiftGreen(in, (float)header->minY,  (float)header->maxY);
+    points[i].ib = colorShiftBlue(in, (float)header->minY,  (float)header->maxY);
+  }
+}
+
+float colorShiftRed(float value, float minY, float maxY) {
+  return (cos(PI + PI * (((0.01 * value) - minY) / (maxY - minY)))) / 2.0 + 0.5;
+}
+
+float colorShiftGreen(float value, float minY, float maxY) {
+  return (sin(PI * (((0.01 * value) - minY) / (maxY - minY))));
+}
+
+float colorShiftBlue(float value, float minY, float maxY) {
+  return (-cos(PI + PI * (((0.01 * value) - minY) / (maxY - minY)))) / 2.0 + 0.5;
 }

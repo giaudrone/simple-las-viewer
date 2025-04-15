@@ -5,7 +5,8 @@
 #include <limits.h>
 #include <string.h>
 
-#include "prints.h"
+#include "debug.h"
+#include "recordFormats.h"
 #include "renderWindow.h"
 #include "../includes/glad.h"
 #include <GLFW/glfw3.h>
@@ -25,30 +26,30 @@ int main(int argc, char *argv[]) {
   }
 
 
-  LASFHeader header;
+  LASFHeader *header = malloc(sizeof(LASFHeader));
 
   FILE* fp = fopen(argv[1],"rb");
 
   if(fp) {
-    fread(&header, sizeof(LASFHeader), 1, fp);
+    fread(header, sizeof(LASFHeader), 1, fp);
   } else {
     printf("Failed to read header");
     return EXIT_FAILURE;
   }
 
-  if(header.pointDataRecordFormat != 6){
-    printf("Point data format %d is not supported yet\n", header.pointDataRecordFormat);
+  if(header->pointDataRecordFormat != 6){
+    printf("Point data format %d is not supported yet\n", header->pointDataRecordFormat);
     return EXIT_FAILURE;
   }
 
-  size_t numRecords = header.numPointRecords;
+  size_t numRecords = header->numPointRecords;
 
-  PointDataRecord *structs = malloc(numRecords * header.pointDataRecordLength);
+  PointDataRecord6 *structs = malloc(numRecords * header->pointDataRecordLength);
 
 
-  fseek(fp, header.offsetToPointData, SEEK_SET);
+  fseek(fp, header->offsetToPointData, SEEK_SET);
 
-  fread(structs, sizeof(PointDataRecord), numRecords, fp);
+  fread(structs, sizeof(PointDataRecord6), numRecords, fp);
 
 
   renderWindow(structs, header, noiseFlag); 

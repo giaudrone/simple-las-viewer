@@ -61,7 +61,7 @@ typedef struct {
 
 } LASFHeader;
 
-void printDebug(LASFHeader a);
+void printDebug(LASFHeader* a);
 
 #pragma pack(pop)
 
