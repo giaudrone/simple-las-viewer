@@ -18,7 +18,7 @@ sudo pacman -S glfw cglm
 Clone this repository
 ```
 make
-./simplelasviewer [path] [--reduce-noise]
+./simple-las-viewer [path] [--reduce-noise]
 ```
 
 ## Notes
