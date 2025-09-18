@@ -15,19 +15,23 @@ uniform int colorMode;
 
 out vec4 FragColor;
 
-float colorShiftRed(float value) {
+float colorShiftRed (float value)
+{
   return (cos(PI + PI * (((0.01 * value) - minY) / (maxY - minY)))) / 2.0 + 0.5;
 }
 
-float colorShiftGreen(float value) {
+float colorShiftGreen (float value)
+{
   return (sin(PI * (((0.01 * value) - minY) / (maxY - minY))));
 }
 
-float colorShiftBlue(float value) {
+float colorShiftBlue (float value)
+{
   return (-cos(PI + PI * (((0.01 * value) - minY) / (maxY - minY)))) / 2.0 + 0.5;
 }
 
-float intensityStrength(float intensity){
+float intensityStrength (float intensity)
+{
   return (intensity - minIntensity) / (maxIntensity - minIntensity);
 }
 

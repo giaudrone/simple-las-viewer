@@ -1,8 +1,8 @@
 #ifndef RENDERWINDOW_H_
 #define RENDERWINDOW_H_
 
-#include "prints.h"
+#include "format6.h"
 
-void renderWindow(PointDataRecord *records, LASFHeader header, int noiseFlag);
+void renderWindow (PointDataRecord *records, LASFHeader header, int noiseFlag);
 
-#endif // ! RENDERWINDOW_H_
+#endif

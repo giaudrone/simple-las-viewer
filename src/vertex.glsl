@@ -18,7 +18,8 @@ uniform float zScaleFactor;
 out vec3 fragPos;
 out float intensity;
 
-void main(){
+void main()
+{
   vec3 floatPosition = vec3(
     xScaleFactor * aPosition.x - centerX,
     yScaleFactor * aPosition.y - centerY, 
